@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Suivi des absences — S1</title>
+<style>
+  html{
+    background:#FFFFFF;
+    color-scheme: light;
+  }
+  :root{
+    --paper: #FFFFFF;
+    --paper-raised: #F4F4F3;
+    --ink: #1A1A1A;
+    --ink-soft: #6B6B6B;
+    --line: #E2E1DD;
+    --skema-red: #A6192E;
+    --skema-red-dark: #7D1322;
+    --red: #B33A2E;
+    --red-soft: #F6E3E1;
+    --amber: #B8862F;
+    --amber-soft: #F3E9D6;
+    --green: #4F7A5B;
+    --green-soft: #E4EDE5;
+    --black-soft: #E4E4E2;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#FFFFFF;
+    color:#1A1A1A;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:112px;
+  }
+  .promo-banner{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:50;
+    height:96px;
+    max-height:3cm;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:0 14px;
+    background:
+      radial-gradient(120px 90px at 8% -20%, rgba(90,140,255,0.55), transparent 70%),
+      radial-gradient(140px 100px at 95% 120%, rgba(230,210,80,0.4), transparent 70%),
+      linear-gradient(135deg, #0B0E19 0%, #111633 55%, #0B0E19 100%);
+    box-shadow: 0 -1px 0 rgba(255,255,255,0.06) inset;
+  }
+  .promo-banner .promo-mark{
+    flex-shrink:0;
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    border:1.5px solid rgba(255,255,255,0.35);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: Georgia, serif;
+    font-weight:700;
+    font-size:19px;
+    color:#fff;
+    background:rgba(255,255,255,0.04);
+  }
+  .promo-banner .promo-text{
+    flex:1;
+    min-width:0;
+  }
+  .promo-banner .promo-text .promo-title{
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    line-height:1.25;
+  }
+  .promo-banner .promo-text .promo-title .grad{
+    background:linear-gradient(90deg, #8FB2FF, #E9DD7A);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .promo-banner .promo-text .promo-sub{
+    margin-top:2px;
+    font-size:11px;
+    color:rgba(255,255,255,0.6);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .promo-banner a.promo-cta{
+    flex-shrink:0;
+    background:#fff;
+    color:#0B0E19;
+    text-decoration:none;
+    font-size:12.5px;
+    font-weight:700;
+    padding:9px 15px;
+    border-radius:8px;
+    white-space:nowrap;
+  }
+  h1,h2,.course-name{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  }
+  header{
+    padding:34px 20px 22px;
+    border-bottom:1px solid var(--line);
+  }
+  header h1{
+    margin:0 0 8px;
+    font-size:28px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    line-height:1.5;
+    max-width:480px;
+  }
+  .summary{
+    display:flex;
+    gap:10px;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .summary-chip{
+    flex:1;
+    min-width:90px;
+    background:var(--paper-raised);
+    border-radius:10px;
+    padding:10px 12px;
+    text-align:left;
+  }
+  .summary-chip .n{
+    font-size:22px;
+    font-weight:700;
+    line-height:1;
+  }
+  .summary-chip .l{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .summary-chip.ok .n{color:var(--green);}
+  .summary-chip.warn .n{color:var(--amber);}
+  .summary-chip.danger .n{color:var(--red);}
+  .summary-chip.exceeded .n{color:#111;}
+
+  section.module{
+    padding:22px 20px 4px;
+  }
+  section.module h2{
+    font-size:15.5px;
+    font-weight:600;
+    font-style:italic;
+    color:var(--ink-soft);
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .course{
+    background:var(--paper-raised);
+    border-radius:12px;
+    padding:14px 14px 12px;
+    margin-bottom:10px;
+  }
+  .course-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .course-name{
+    font-size:16.5px;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .course-prof{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .course-figure{
+    text-align:right;
+    white-space:nowrap;
+  }
+  .course-figure .frac{
+    font-size:17px;
+    font-weight:700;
+  }
+  .course-figure .frac .used{}
+  .course-figure .frac .of{
+    color:var(--ink-soft);
+    font-weight:400;
+  }
+  .course-figure .status-label{
+    font-size:11px;
+    margin-top:2px;
+  }
+  .bar-track{
+    height:6px;
+    background:#E4DECF;
+    border-radius:4px;
+    margin-top:10px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    border-radius:4px;
+    transition:width .35s ease;
+  }
+  .course.ok{background:var(--green-soft);}
+  .course.warn{background:var(--amber-soft);}
+  .course.danger{background:var(--red-soft);}
+  .course.exceeded{background:var(--black-soft);}
+  .course.ok .bar-fill{background:var(--green);}
+  .course.warn .bar-fill{background:var(--amber);}
+  .course.danger .bar-fill{background:var(--red);}
+  .course.exceeded .bar-fill{background:#111;}
+  .course.ok .status-label{color:var(--green);}
+  .course.warn .status-label{color:var(--amber);}
+  .course.danger .status-label{color:var(--red);}
+  .course.exceeded .status-label{color:#111;}
+  .course.ok .course-name{color:var(--green);}
+  .course.warn .course-name{color:var(--amber);}
+  .course.danger .course-name{color:var(--red);}
+  .course.exceeded .course-name{color:#111;}
+
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:11px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    font-size:12.5px;
+    padding:6px 10px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn.add{border-color:transparent;background:#fff;box-shadow:inset 0 0 0 1px var(--line);}
+  .btn.undo{color:var(--ink-soft);margin-left:auto;}
+  .custom-wrap{
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .custom-wrap input{
+    width:52px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:5px 6px;
+    font-size:12.5px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .no-tolerance{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--red);
+    background:var(--red-soft);
+    border-radius:7px;
+    padding:6px 8px;
+  }
+  .log{
+    margin-top:8px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  footer{
+    padding:26px 20px 10px;
+    color:var(--ink-soft);
+    font-size:12px;
+    text-align:center;
+  }
+  .reset-all{
+    display:block;
+    margin:6px auto 0;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .loading{
+    padding:40px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .gate{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    text-align:center;
+  }
+  .gate h1{
+    font-size:24px;
+    margin:0 0 18px;
+  }
+  .gate input{
+    font-size:16px;
+    padding:11px 14px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:#fff;
+    color:var(--ink);
+    width:220px;
+    text-align:center;
+  }
+  .skema-logo{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    line-height:1;
+  }
+  .skema-logo .word{
+    font-size:26px;
+    font-weight:700;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .skema-logo .tag{
+    display:block;
+    margin-top:3px;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size:9.5px;
+    letter-spacing:0.14em;
+    color:var(--skema-red);
+    font-weight:600;
+  }
+  .gate .skema-logo{margin-bottom:26px;}
+  .gate .skema-logo .word{font-size:32px;}
+  header .skema-logo{margin-bottom:16px;}
+  .gate button{
+    margin-top:14px;
+    border:none;
+    background:var(--skema-red);
+    color:#fff;
+    font-size:14.5px;
+    padding:10px 22px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .gate button:active{background:var(--skema-red-dark);}
+  .gate input:focus{
+    outline:none;
+    border-color:var(--skema-red);
+  }
+  #app{display:none;}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="skema-logo"><span class="word">skema</span><span class="tag">BUSINESS SCHOOL</span></div>
+  <h1>Qui es-tu ?</h1>
+  <input type="text" id="nameInput" placeholder="Ton prénom" autofocus>
+  <button id="nameSubmit">Continuer</button>
+</div>
+
+<div id="app">
+<header>
+  <div class="skema-logo"><span class="word">skema</span><span class="tag">BUSINESS SCHOOL</span></div>
+  <h1 id="pageTitle">Mes absences</h1>
+</header>
+
+<div class="summary" id="summary"></div>
+
+<div id="content" class="loading">Chargement de vos données…</div>
+
+<footer>
+  <button class="reset-all" id="resetAll">Tout réinitialiser</button>
+</footer>
+</div>
+
+<script>
+const COURSES = [
+  {section:"Fondamentaux du management", items:[
+    {id:"marketing", name:"Marketing principles", prof:"Laurence Nahmias", allowance:6},
+    {id:"mgmt-fin", name:"Management financier de l'entreprise", prof:"Nhung Hoang", allowance:6},
+    {id:"droit-civil", name:"Droit civil et des contrats", prof:"Isabelle Bufflier", allowance:6},
+    {id:"comportement-org", name:"Comportement organisationnel", prof:"Philippe Pailot", allowance:6},
+    {id:"academic-speaking", name:"Academic & professional speaking", prof:"Mary-Jane Michaelides", allowance:6},
+    {id:"quant-methods", name:"Quantitative Methods", prof:"Paul Anckaert", allowance:6},
+  ]},
+  {section:"Langues vivantes", items:[
+    {id:"langue-a", name:"Langue A", prof:"Jérémy Levin", allowance:3},
+    {id:"langue-b", name:"Langue B", prof:"Jérémy Levin", allowance:3},
+  ]},
+  {section:"Grands enjeux", items:[
+    {id:"enjeux-eco", name:"Grands enjeux économiques contemporains", prof:"Emmanuel Combe / Annabelle Caumel", allowance:6},
+    {id:"enjeux-geo", name:"Grands Enjeux de Géopolitique", prof:"Frédéric Munier / Rodolphe Desbordes", allowance:6},
+    {id:"3e", name:"3E", prof:"Rodolphe Desbordes", allowance:6},
+    {id:"skema-masterclass", name:"SKEMAsterclass", prof:"Frédéric Munier / Rodolphe Desbordes", allowance:0},
+  ]},
+  {section:"Séminaires", items:[
+    {id:"hackathon", name:"Hackathon acteur engagé", prof:"Marine Hadengue", allowance:3},
+    {id:"intel-co", name:"Intelligence commerciale", prof:"Frédéric Brossard", allowance:1.5},
+  ]},
+  {section:"Développement personnel et professionnel", items:[
+    {id:"career-mgmt-1", name:"Career management 1 : Explorer les potentiels", prof:"Feryel Houssein", allowance:0},
+    {id:"excel-debutant", name:"Excel débutant", prof:"André Milleliri", allowance:1.5},
+  ]},
+];
+
+const STORAGE_KEY = "absences-s1-data";
+let data = {}; // { courseId: { used: number, log: [hours,...] } }
+
+function formatH(n){
+  n = Math.round(n*100)/100;
+  if(Number.isInteger(n)) return n + "h";
+  return (n.toFixed(2).replace(/0$/,'').replace(/\.$/,'')) + "h";
+}
+
+function getCourseData(id){
+  return data[id] || {used:0, log:[]};
+}
+
+function statusFor(course, used){
+  const remaining = course.allowance - used;
+  if(remaining < 0) return "exceeded";
+  if(remaining === 0) return "danger";
+  if(remaining <= 1.5) return "warn";
+  return "ok";
+}
+
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){
+    console.error("Erreur de sauvegarde", e);
+  }
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      data = JSON.parse(raw);
+    }
+  }catch(e){
+    data = {};
+  }
+}
+
+function addAbsence(id, hours){
+  if(!data[id]) data[id] = {used:0, log:[]};
+  data[id].used += hours;
+  data[id].log.push(hours);
+  save();
+  render();
+}
+
+function undoLast(id){
+  if(!data[id] || data[id].log.length === 0) return;
+  const last = data[id].log.pop();
+  data[id].used -= last;
+  if(data[id].used < 0) data[id].used = 0;
+  save();
+  render();
+}
+
+async function resetCourse(id){
+  data[id] = {used:0, log:[]};
+  await save();
+  render();
+}
+
+async function resetAll(){
+  data = {};
+  await save();
+  render();
+}
+
+function render(){
+  const content = document.getElementById("content");
+  content.className = "";
+  content.innerHTML = "";
+
+  let ok=0, warn=0, danger=0, exceeded=0;
+
+  COURSES.forEach(mod => {
+    const section = document.createElement("section");
+    section.className = "module";
+    const h2 = document.createElement("h2");
+    h2.textContent = mod.section;
+    section.appendChild(h2);
+
+    mod.items.forEach(course => {
+      const cd = getCourseData(course.id);
+      const status = statusFor(course, cd.used);
+      if(status === "ok") ok++;
+      else if(status === "warn") warn++;
+      else if(status === "danger") danger++;
+      else exceeded++;
+
+      const div = document.createElement("div");
+      div.className = "course " + status;
+
+      const pct = Math.min(100, course.allowance === 0
+        ? (cd.used > 0 ? 100 : 0)
+        : (cd.used / course.allowance) * 100);
+
+      const statusText = status === "exceeded" ? "quota dépassé"
+        : status === "danger" ? "attention danger"
+        : status === "warn" ? "à surveiller"
+        : "marge confortable";
+
+      div.innerHTML = `
+        <div class="course-top">
+          <div>
+            <div class="course-name">${course.name}</div>
+            <div class="course-prof">${course.prof}</div>
+          </div>
+          <div class="course-figure">
+            <div class="frac"><span class="used">${formatH(cd.used)}</span><span class="of"> / ${formatH(course.allowance)}</span></div>
+            <div class="status-label">${statusText}</div>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="actions">
+          <button class="btn add" data-id="${course.id}" data-h="1.5">+1h30</button>
+          <button class="btn add" data-id="${course.id}" data-h="3">+3h</button>
+          <div class="custom-wrap">
+            <input type="number" step="0.5" min="0" placeholder="h" class="custom-input" data-id="${course.id}">
+            <button class="btn add-custom" data-id="${course.id}">Ajouter</button>
+          </div>
+          <button class="btn undo" data-id="${course.id}">Annuler</button>
+        </div>
+        ${cd.log.length ? `<div class="log">${cd.log.length} absence${cd.log.length>1?"s":""} enregistrée${cd.log.length>1?"s":""}</div>` : ""}
+      `;
+      section.appendChild(div);
+    });
+
+    content.appendChild(section);
+  });
+
+  document.getElementById("summary").innerHTML = `
+    <div class="summary-chip ok"><div class="n">${ok}</div><div class="l">marge confortable</div></div>
+    <div class="summary-chip warn"><div class="n">${warn}</div><div class="l">à surveiller</div></div>
+    <div class="summary-chip danger"><div class="n">${danger}</div><div class="l">attention danger</div></div>
+    <div class="summary-chip exceeded"><div class="n">${exceeded}</div><div class="l">quota dépassé</div></div>
+  `;
+
+  content.querySelectorAll(".btn.add").forEach(btn=>{
+    btn.addEventListener("click", ()=> addAbsence(btn.dataset.id, parseFloat(btn.dataset.h)));
+  });
+  content.querySelectorAll(".btn.add-custom").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const input = content.querySelector(`.custom-input[data-id="${btn.dataset.id}"]`);
+      const v = parseFloat(input.value);
+      if(!isNaN(v) && v > 0){
+        addAbsence(btn.dataset.id, v);
+        input.value = "";
+      }
+    });
+  });
+  content.querySelectorAll(".btn.undo").forEach(btn=>{
+    btn.addEventListener("click", ()=> undoLast(btn.dataset.id));
+  });
+}
+
+document.getElementById("resetAll").addEventListener("click", ()=>{
+  if(confirm("Réinitialiser toutes les absences enregistrées ?")){
+    resetAll();
+  }
+});
+
+function startApp(name){
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("pageTitle").textContent = "Mes absences : " + name;
+}
+
+async function goWithName(){
+  const input = document.getElementById("nameInput");
+  const name = input.value.trim();
+  if(!name) { input.focus(); return; }
+  startApp(name);
+  await load();
+  render();
+}
+
+document.getElementById("nameSubmit").addEventListener("click", goWithName);
+document.getElementById("nameInput").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter") goWithName();
+});
+</script>
+<div class="promo-banner" id="promoBanner">
+  <div class="promo-mark">C</div>
+  <div class="promo-text">
+    <div class="promo-title">Casa — trouvez votre logement <span class="grad">avant les autres</span></div>
+    <div class="promo-sub">Alertes instantanées sur les nouvelles annonces</div>
+  </div>
+  <a class="promo-cta" href="https://apps.apple.com/fr/app/casa-location-immo/id6768444058" target="_blank" rel="noopener">Télécharger</a>
+</div>
+
+</body>
+</html>
